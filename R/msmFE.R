@@ -11,7 +11,8 @@ msmFE <- function(
 
 
   ## data format
-  ## remove no-variation observations if
+  ## remove no-variation observations if no-variation in the treatment
+  pscore_fit <- estimate_pscore()
 }
 
 
