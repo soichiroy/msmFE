@@ -32,4 +32,5 @@ estimate_pscore <- function(formula, data) {
 
 estimate_outcome <- function() {
 
+  ## some local change from groupFE repo 
 }
