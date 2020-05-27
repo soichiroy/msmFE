@@ -5,7 +5,7 @@
 \title{Main function  for estimating treatment effects}
 \usage{
 msmFE(formula_outcome = NULL, formula_treatment, data, index,
-  estimator = "HT", fixed_effects = TRUE)
+  estimator = "HT", fixed_effects = TRUE, options = list())
 }
 \description{
 Main function  for estimating treatment effects

@@ -4,7 +4,7 @@
 \alias{estimate_pscore}
 \title{Function to estimate propensity scores}
 \usage{
-estimate_pscore(formula, data)
+estimate_pscore(formula, data, id_time_vec = NULL)
 }
 \description{
 Function to estimate propensity scores
