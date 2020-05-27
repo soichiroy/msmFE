@@ -27,6 +27,7 @@ msmFE <- function(
 
 
 #' Function to estimate propensity scores
+#' @import tidyverse
 #' @export
 estimate_pscore <- function(formula, data, id_time_vec = NULL) {
 
