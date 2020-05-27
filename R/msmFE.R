@@ -59,7 +59,8 @@ estimate_outcome <- function() {
   ## some local change from groupFE repo
 }
 
-
+#' Weighting estimator
+#' @export
 estimate_effect <- function(Y, D, ps, trim = TRUE) {
   dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps) %>% na.omit()
   tau_ht <- with(dat_complete, estimator_ht(Yc, Dc, psc, trim = TRUE))
@@ -72,7 +73,8 @@ estimate_effect <- function(Y, D, ps, trim = TRUE) {
 }
 
 
-
+#' HT estimator
+#' @export
 estimator_ht <- function(Y, D, ps, trim = TRUE) {
   if(isTRUE(trim)) {
     ps <- pmin(ps, 0.9999)
@@ -82,6 +84,9 @@ estimator_ht <- function(Y, D, ps, trim = TRUE) {
   return(sum(tmp1) / length(D))
 }
 
+
+#' HT estimator
+#' @export
 estimator_hajek <- function(Y, D, ps, trim = TRUE) {
   if(isTRUE(trim)) {
     ps <- pmin(ps, 0.9999)
