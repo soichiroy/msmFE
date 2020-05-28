@@ -61,9 +61,21 @@ estimate_outcome <- function() {
 }
 
 #' Weighting estimator
+#' @import tidyverse
 #' @export
-estimate_effect <- function(Y, D, ps, trim = TRUE) {
-  dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps) %>% na.omit()
+estimate_effect <- function(Y, D, ps, trim = TRUE, na_omit = TRUE) {
+  dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps)
+
+  if (isTRUE(na_omit)) {
+    dat_complete <- na.omit(dat_complete)
+  } else {
+    dat_complete <- dat_complete %>%
+      mutate(psc = if_else(is.na(psc),
+                            if_else(Dc == 1, 0.9999, 0.0001),
+                            psc
+                          ))
+  }
+
   tau_ht <- with(dat_complete, estimator_ht(Yc, Dc, psc, trim = TRUE))
   tau_hj <- with(dat_complete, estimator_hajek(Yc, Dc, psc, trim = TRUE))
   tau_vec <- c(tau_ht, tau_hj)
