@@ -177,7 +177,7 @@ estimator_var_hajek <- function(Y, D, ps, trim = TRUE) {
 }
 
 
-estimator_var_ht <- function(Y, D ps, trim = TRUE) {
+estimator_var_ht <- function(Y, D, ps, trim = TRUE) {
   if(isTRUE(trim)) {
     ps <- pmin(ps, 0.9999)
     ps <- pmax(ps, 0.0001)
