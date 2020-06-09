@@ -115,6 +115,7 @@ estimator_hajek <- function(Y, D, ps, trim = TRUE) {
 
 
 #' Variance estmator for IPW estimator
+#' @export
 estimate_variance <- function(Y, D, ps, na_omit = TRUE) {
   ## remove NA
   dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps)
