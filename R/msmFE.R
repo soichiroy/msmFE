@@ -112,3 +112,11 @@ estimator_hajek <- function(Y, D, ps, trim = TRUE) {
 
   return(tmp_up1/tmp_down1 - tmp_up0/tmp_down0)
 }
+
+
+#' Variance estmator for IPW estimator
+estimate_variance <- function(Y, D, tau, ps) {
+  Ui <- D * (Y - tau) / ps
+  var_est <- mean(Ui^2)
+  return(var_est)
+}
