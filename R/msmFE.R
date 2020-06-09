@@ -115,8 +115,13 @@ estimator_hajek <- function(Y, D, ps, trim = TRUE) {
 
 
 #' Variance estmator for IPW estimator
-estimate_variance <- function(Y, D, tau, ps) {
-  Ui <- D * (Y - tau) / ps
+estimate_variance <- function(Y, D, tau, ps, na_omit = TRUE) {
+  dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps)
+  if (isTRUE(na_omit)) {
+    dat_complete <- na.omit(dat_complete)
+  }
+
+  Ui <- with(dat_complete, Dc * (Yc - tau) / psc)
   var_est <- mean(Ui^2)
   return(var_est)
 }
