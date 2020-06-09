@@ -115,13 +115,83 @@ estimator_hajek <- function(Y, D, ps, trim = TRUE) {
 
 
 #' Variance estmator for IPW estimator
-estimate_variance <- function(Y, D, tau, ps, na_omit = TRUE) {
+estimate_variance <- function(Y, D, ps, na_omit = TRUE) {
+  ## remove NA
   dat_complete <- tibble::tibble(Yc = Y, Dc = D, psc = ps)
   if (isTRUE(na_omit)) {
     dat_complete <- na.omit(dat_complete)
+  } else {
+    ## otherwise replace NA pscore with threshold values
+    dat_complete <- dat_complete %>%
+      mutate(psc = if_else(is.na(psc),
+                            if_else(Dc == 1, 0.9999, 0.0001),
+                            psc
+                          ))
   }
 
-  Ui <- with(dat_complete, Dc * (Yc - tau) / psc)
-  var_est <- mean(Ui^2)
+
+  ##
+  ## Compute super-population variance
+  ##
+  ##    Var(tau) = Var(Y(1)) + Var(Y(0))
+  ##
+  ## Hajek
+  ##    Var(Y(1)) = E[U^2] with U = D * (Y - E[Y(1)]) / ps
+  ##    Var(Y(0)) = E[U^2] with U = (1 - D) * (Y - E[Y(0)]) / (1 - ps)
+  ##
+  ## HT
+  ##    Var(Y(1)) = E[U^2] with U = D * Y / ps - E[Y(1)]
+  ##    Var(Y(0)) = E[U^2] with U = (1 - D) * Y / (1 - ps) - E[Y(0)]
+  ##
+  ## where we replace E[Y(d)] with the estimate
+  ##
+
+  var_ht <- with(dat_complete, estimator_var_ht(Yc, Dc, psc, trim = TRUE))
+  var_hj <- with(dat_complete, estimator_var_hajek(Yc, Dc, psc, trim = TRUE))
+  var_est <- c(var_ht, var_hj)
+  names(var_est) <- c("HT", "Hajek")
+  return(var_est)
+}
+
+
+estimator_var_hajek <- function(Y, D, ps, trim = TRUE) {
+  if(isTRUE(trim)) {
+    ps <- pmin(ps, 0.9999)
+    ps <- pmax(ps, 0.0001)
+  }
+  tmp_up1   <- sum((D * Y) / ps)
+  tmp_down1 <- sum(D / ps)
+  tmp_up0   <- sum(((1-D) * Y) /(1 - ps))
+  tmp_down0 <- sum((1 - D) / (1 - ps))
+
+  ## mean potential outcome
+  EY1 <- tmp_up1 / tmp_down1
+  EY0 <- tmp_up0 / tmp_down0
+
+  ## score
+  U1 <- D * (Y - EY1) / ps
+  U0 <- (1 - D) * (Y - EY0) / (1 - ps)
+
+  var_est  <- mean(U1^2) + mean(U0^2)
+  return(var_est)
+}
+
+
+estimator_var_ht <- function(Y, D ps, trim = TRUE) {
+  if(isTRUE(trim)) {
+    ps <- pmin(ps, 0.9999)
+    ps <- pmax(ps, 0.0001)
+  }
+
+  ## mean potential outcome
+  EY1 <- sum(D * Y / ps) / length(D)
+  EY0 <- sum((1 - D) * Y / (1 - ps)) / length(D)
+
+  ## score
+  U1 <- D * Y / ps - EY1
+  U0 <- (1 - D) * Y / (1 - ps) - EY0
+
+  ## variance
+  var_est <- mean(U1^2) + mean(U0^2)
   return(var_est)
 }
