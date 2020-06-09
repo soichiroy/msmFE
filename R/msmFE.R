@@ -173,7 +173,7 @@ estimator_var_hajek <- function(Y, D, ps, trim = TRUE) {
   U0 <- (1 - D) * (Y - EY0) / (1 - ps)
 
   var_est  <- mean(U1^2) + mean(U0^2)
-  return(var_est)
+  return(var_est / length(D))
 }
 
 
@@ -193,5 +193,5 @@ estimator_var_ht <- function(Y, D, ps, trim = TRUE) {
 
   ## variance
   var_est <- mean(U1^2) + mean(U0^2)
-  return(var_est)
+  return(var_est / length(D))
 }
