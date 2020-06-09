@@ -4,7 +4,7 @@
 \alias{estimate_effect}
 \title{Weighting estimator}
 \usage{
-estimate_effect(Y, D, ps, trim = TRUE)
+estimate_effect(Y, D, ps, trim = TRUE, na_omit = TRUE)
 }
 \description{
 Weighting estimator
