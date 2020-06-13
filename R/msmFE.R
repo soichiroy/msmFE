@@ -29,7 +29,8 @@ msmFE <- function(
 #' Function to estimate propensity scores
 #' @import tidyverse
 #' @export
-estimate_pscore <- function(formula, data, id_time_vec = NULL, bias_correct = FALSE) {
+estimate_pscore <- function(formula, data, id_time_vec = NULL, bias_correct = FALSE,
+is_FE = TRUE) {
 
   if (is.null(id_time_vec) & ("panel_data" %in% class(data))) {
     id_time_name <- panelr::get_wave(data)
@@ -37,15 +38,23 @@ estimate_pscore <- function(formula, data, id_time_vec = NULL, bias_correct = FA
   }
 
   ## estimate
-  fit <- bife::bife(formula, data = data, model = "logit")
+  if (isTRUE(is_FE)) {
+    fit <- bife::bife(formula, data = data, model = "logit")
+    ## bias correction
+    if (isTRUE(bias_correct)) {
+      fit <- bife::bias_corr(fit)
+    }
 
-  ## bias correction
-  if (isTRUE(bias_correct)) {
-    fit <- bife::bias_corr(fit)
+    ## predicted prob
+    fitted <- predict(fit, type = "response")
+  } else {
+    fit <- glm(formula, data = data, family = 'binomial')
+    fitted <- predict(fit, type = "response")
+    names(fitted) <- pull(data, panelr::get_id(data))
   }
 
   ## propensity score
-  fitted <- predict(fit, type = "response")
+
 
   ## format data
   pscore_dat <- enframe(fitted) %>%
