@@ -68,10 +68,23 @@ is_FE = TRUE) {
   return(list(fit = fit, ps = fitted, dat = pscore_dat))
 }
 
+#' MSM treatment estimation
+#' @export
+estimate_outcome <- function(formula, data, weights) {
+  ## estimate effect by the weighted ls 
+  fit <- lm(formula, data = data, weights = weights )  
+}
 
-estimate_outcome <- function() {
-
-  ## some local change from groupFE repo
+#' Construct weigths 
+#' @param treatment A matrix of treatments where rows correspond to units.
+#' @param ps A matrix of propensity scores. 
+#' @export
+construct_weights <- function(treatment, ps) {
+  weights <- rep(1, nrow(treatment))
+  for(i in seq_len(nrow(treatment))) {
+    weights <- weights * (treatment[,i] / ps[,i] + (1 - treatment[,i]) / (1 - ps[,i]))
+  }
+  return(weights)
 }
 
 #' Weighting estimator
