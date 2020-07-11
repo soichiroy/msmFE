@@ -28,14 +28,17 @@ msmFE <- function(
 
 #' Function to estimate propensity scores
 #' @import tidyverse
+#' @import Formula
 #' @export
 estimate_pscore <- function(formula, data, id_time_vec = NULL, bias_correct = FALSE,
-is_FE = TRUE) {
+is_FE = TRUE, impute_FE = FALSE) {
 
   if (is.null(id_time_vec) & ("panel_data" %in% class(data))) {
     id_time_name <- panelr::get_wave(data)
     id_time_vec  <- sort(unique(data %>% pull(id_time_name)))
   }
+
+  lin_pred <- NULL
 
   ## estimate
   if (isTRUE(is_FE)) {
@@ -46,6 +49,31 @@ is_FE = TRUE) {
     }
 
     ## predicted prob
+    if (isTRUE(impute_FE)) {
+      ## fixed effect estimates (observations are dropped)
+      FEest        <- fit$alpha
+
+      ## compute the linear predictor X'β
+      coefs        <- as.vector(fit$coef)
+      formula_main <- formula(Formula(formula), rhs = 1, lhs = 0)
+      formula_main <- update(formula_main, ~ . - 1)
+      Xmat         <- model.matrix(formula_main, data = data)
+      Xb           <- as.vector(Xmat %*% coefs)
+
+      ## obtain treatment (i.e., outcome variable)
+      treatment <- all.vars(formula)[1]
+      lin_pred  <- tibble::tibble(
+        treatment = pull(data, !!sym(treatment)),
+        lin_pred = Xb,
+        id_unit  = pull(data, !!sym(panelr::get_id(data))),
+        id_time  = pull(data, !!sym(panelr::get_wave(data)))
+      ) %>%
+      left_join(
+        enframe(FEest, name = "id_unit", value = 'FEest'), by = 'id_unit'
+      ) %>%
+      mutate(id_unit = as.numeric(id_unit))
+    }
+    ## ps
     fitted <- predict(fit, type = "response")
   } else {
     fit <- glm(formula, data = data, family = 'binomial')
@@ -65,19 +93,19 @@ is_FE = TRUE) {
     mutate(id_time = id_time_vec) %>%
     ungroup()
 
-  return(list(fit = fit, ps = fitted, dat = pscore_dat))
+  return(list(fit = fit, ps = fitted, dat = pscore_dat, lin_pred = lin_pred))
 }
 
 #' MSM treatment estimation
 #' @export
 estimate_outcome <- function(formula, data, weights) {
-  ## estimate effect by the weighted ls 
-  fit <- lm(formula, data = data, weights = weights )  
+  ## estimate effect by the weighted ls
+  fit <- lm(formula, data = data, weights = weights )
 }
 
-#' Construct weigths 
+#' Construct weigths
 #' @param treatment A matrix of treatments where rows correspond to units.
-#' @param ps A matrix of propensity scores. 
+#' @param ps A matrix of propensity scores.
 #' @export
 construct_weights <- function(treatment, ps) {
   weights <- rep(1, nrow(treatment))
