@@ -30,8 +30,10 @@ msmFE <- function(
 #' @import tidyverse
 #' @import Formula
 #' @export
-estimate_pscore <- function(formula, data, id_time_vec = NULL, bias_correct = FALSE,
-is_FE = TRUE, impute_FE = FALSE) {
+estimate_pscore <- function(
+    formula, data, id_time_vec = NULL, bias_correct = FALSE,
+is_FE = TRUE, impute_FE = FALSE, model = "logit"
+) {
 
   if (is.null(id_time_vec) & ("panel_data" %in% class(data))) {
     id_time_name <- panelr::get_wave(data)
@@ -42,7 +44,7 @@ is_FE = TRUE, impute_FE = FALSE) {
 
   ## estimate
   if (isTRUE(is_FE)) {
-    fit <- bife::bife(formula, data = data, model = "logit")
+    fit <- bife::bife(formula, data = data, model = model)
     ## bias correction
     if (isTRUE(bias_correct)) {
       fit <- bife::bias_corr(fit)
@@ -76,7 +78,7 @@ is_FE = TRUE, impute_FE = FALSE) {
     ## ps
     fitted <- predict(fit, type = "response")
   } else {
-    fit <- glm(formula, data = data, family = 'binomial')
+    fit <- glm(formula, data = data, family = binomial(link = model))
     fitted <- predict(fit, type = "response")
     names(fitted) <- pull(data, panelr::get_id(data))
   }
