@@ -1,30 +1,3 @@
-#' Main function  for estimating treatment effects
-#' @export
-msmFE <- function(
-  formula_outcome = NULL,
-  formula_treatment,
-  data, index,
-  estimator = "HT",
-  fixed_effects = TRUE,
-  options = list()
-) {
-
-  id_time_vec <- data %>% pull(index[2]) %>% unique() %>% sort()
-
-  ## data format
-  ## remove no-variation observations if no-variation in the treatment
-  pscore_fit <- estimate_pscore(formula_treatment, data)
-
-  if (!is.null(formula_outcome)) {
-
-  }
-
-  ## estimate treatment effect
-
-
-}
-
-
 
 #' Function to estimate propensity scores
 #' @import tidyverse
